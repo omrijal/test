@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Availability Form</title>
+    <script>
+        const pacificTimes = {
+            "April 27": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "April 28": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "April 29": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "April 30": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 1": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 2": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 3": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 4": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 5": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 6": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 7": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 8": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 9": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 10": ["5:30 AM", "9:15 PM", "10:15 PM", "11:15 PM"],
+            "May 11": ["5:30 AM"]
+        };
+    
+        const istConversion = {
+            "5:30 AM": { time: "6:00 PM", dayShift: 0 },
+            "9:15 PM": { time: "9:45 AM", dayShift: 1 },
+            "10:15 PM": { time: "10:45 AM", dayShift: 1 },
+            "11:15 PM": { time: "11:45 AM", dayShift: 1 }
+        };
+    
+        const allDates = Object.keys(pacificTimes);
+    
+        function getPreviousDate(currentDate) {
+            const index = allDates.indexOf(currentDate);
+            return index > 0 ? allDates[index - 1] : null;
+        }
+    
+        function updateTimes() {
+            const selectedDate = document.getElementById('dateSelect').value;
+            const timezone = document.querySelector('input[name="timezone"]:checked').value;
+            const timeSelect = document.getElementById('timeSelect');
+            timeSelect.innerHTML = '';
+    
+            let slots = [];
+    
+            if (timezone === "PT") {
+                if (pacificTimes[selectedDate]) {
+                    slots = pacificTimes[selectedDate].map(time => ({ label: `${time} PT`, value: time }));
+                }
+            } else if (timezone === "IST") {
+                // Same-day converted time
+                if (pacificTimes[selectedDate]) {
+                    pacificTimes[selectedDate].forEach(pt => {
+                        if (istConversion[pt].dayShift === 0) {
+                            slots.push({ label: `${istConversion[pt].time} IST`, value: istConversion[pt].time });
+                        }
+                    });
+                }
+    
+                // Include previous day's converted night times
+                const prevDate = getPreviousDate(selectedDate);
+                if (prevDate && pacificTimes[prevDate]) {
+                    pacificTimes[prevDate].forEach(pt => {
+                        if (istConversion[pt]?.dayShift === 1) {
+                            slots.push({ label: `${istConversion[pt].time} IST`, value: istConversion[pt].time });
+                        }
+                    });
+                }
+            }
+    
+            // Add to dropdown
+            for (let slot of slots) {
+                const option = document.createElement("option");
+                option.value = slot.value;
+                option.text = slot.label;
+                timeSelect.appendChild(option);
+            }
+        }
+    </script>    
+</head>
+<body>
+    <h2>Candidate Availability Form</h2>
+
+    <form action="/submit" method="POST">
+        <label>Name:</label><br>
+        <input type="text" name="name" required><br><br>
+
+        <label>Email:</label><br>
+        <input type="email" name="email" required><br><br>
+
+        <label>Job Position:</label><br>
+        <input type="text" name="job" required><br><br>
+
+        <label>Choose Timezone:</label><br>
+        <input type="radio" name="timezone" value="PT" onclick="updateTimes()" checked> Pacific Time (PT)<br>
+        <input type="radio" name="timezone" value="IST" onclick="updateTimes()"> Indian Standard Time (IST)<br><br>
+
+        <label>Available Date:</label><br>
+        <select name="date" id="dateSelect" onchange="updateTimes()" required>
+            <option value="April 27">April 27</option>
+            <option value="April 28">April 28</option>
+            <option value="April 29">April 29</option>
+            <option value="April 30">April 30</option>
+            <option value="May 1">May 1</option>
+            <option value="May 2">May 2</option>
+            <option value="May 3">May 3</option>
+            <option value="May 4">May 4</option>
+            <option value="May 5">May 5</option>
+            <option value="May 6">May 6</option>
+            <option value="May 7">May 7</option>
+            <option value="May 8">May 8</option>
+            <option value="May 9">May 9</option>
+            <option value="May 10">May 10</option>
+            <option value="May 11">May 11</option>
+        </select><br><br>
+
+        <label>Choose Time Slot:</label><br>
+        <select name="time" id="timeSelect" required>
+            <!-- Times will load here dynamically -->
+        </select><br><br>
+
+        <label>Availability:</label><br>
+        <select name="availability" required>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+        </select><br><br>
+
+        <label>How many hours a day can you work?:</label><br>
+        <input type="number" name="hours" required><br><br>
+
+        <label>Are you available to start working one week after the interview date?</label><br>
+        <select name="start" required>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        // Set initial times when page loads
+        window.onload = updateTimes;
+    </script>
+</body>
+</html>
